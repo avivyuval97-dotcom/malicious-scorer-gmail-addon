@@ -47,5 +47,5 @@ The system follows a **Defense-in-Depth** multi-layered security model:
 
 ---
 
-### Developed by: [Your Name]
-*Industrial Engineering & Management Student | Cybersecurity Enthusiast*
+### Developed by: yuval aviv
+
