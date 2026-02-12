@@ -83,13 +83,8 @@ function buildAddOn(e) {
         technicalScore += fileRisk;
       });
     }
-    
-    // 4. Heuristics
-    var suspiciousWords = ['urgent', 'verify', 'password', 'login', 'account', 'action'];
-    var foundWords = suspiciousWords.filter(function (w) { return subject.toLowerCase().indexOf(w) !== -1; });
-    if (foundWords.length > 0) { technicalScore += 15; reasons.push("🔍 Suspicious keywords detected in subject."); }
 
-    // 5. AI Content Inspection
+    // 4. AI Content Inspection (Handles Context, Keywords, and Intent)
     riskScore = Math.min(technicalScore, 100);
     if (geminiApiKey) {
       var features = { subject: subject, sender: sender, urlCount: urls.length, attachmentCount: attachments.length };
@@ -104,7 +99,7 @@ function buildAddOn(e) {
       }
     }
 
-    // 6. Verdict & Safe Message
+    // 5. Verdict & Safe Message
     if (riskScore === 0) {
       reasons.unshift("✅ <b>No threats detected:</b> This email appears to be safe.");
     }
@@ -125,11 +120,8 @@ function buildAddOn(e) {
   }, sender, isBlacklisted);
 }
 
-// --- BLACKLIST MANAGEMENT FUNCTIONS (The missing parts) ---
+// --- BLACKLIST MANAGEMENT FUNCTIONS ---
 
-/**
- * Creates the UI for managing the blacklist
- */
 function showBlacklistManager(e) {
   var props = PropertiesService.getScriptProperties();
   var blacklist = JSON.parse(props.getProperty('blacklist') || "[]");
@@ -140,7 +132,6 @@ function showBlacklistManager(e) {
   var section = CardService.newCardSection()
     .addWidget(CardService.newTextParagraph().setText("<b>Manage blocked senders:</b>"));
 
-  // Manual input to add emails
   section.addWidget(CardService.newTextInput()
     .setFieldName("manual_email")
     .setTitle("Add Email to Blacklist")
@@ -152,7 +143,6 @@ function showBlacklistManager(e) {
 
   section.addWidget(CardService.newDivider());
 
-  // List blocked emails with remove buttons
   if (blacklist.length === 0) {
     section.addWidget(CardService.newTextParagraph().setText("<i>The blacklist is currently empty.</i>"));
   } else {
@@ -167,7 +157,6 @@ function showBlacklistManager(e) {
     });
   }
 
-  // Back button
   section.addWidget(CardService.newTextButton()
     .setText("⬅️ Back to Scan")
     .setOnClickAction(CardService.newAction().setFunctionName("backToScan")));
@@ -175,23 +164,17 @@ function showBlacklistManager(e) {
   return card.addSection(section).build();
 }
 
-/**
- * Handles adding an email manually from the manager UI
- */
 function handleManualAdd(e) {
   var emailToAdd = (e.formInput.manual_email || "").toLowerCase().trim();
   if (!emailToAdd || emailToAdd.indexOf("@") === -1) {
     return CardService.newActionResponseBuilder()
       .setNotification(CardService.newNotification().setText("Invalid Email Address")).build();
   }
-
   var props = PropertiesService.getScriptProperties();
   var list = JSON.parse(props.getProperty('blacklist') || "[]");
-  
   if (list.indexOf(emailToAdd) === -1) {
     list.push(emailToAdd);
     props.setProperty('blacklist', JSON.stringify(list));
-    
     return CardService.newActionResponseBuilder()
       .setNavigation(CardService.newNavigation().updateCard(showBlacklistManager(e)))
       .setNotification(CardService.newNotification().setText("Blocked: " + emailToAdd))
@@ -200,24 +183,19 @@ function handleManualAdd(e) {
   return CardService.newActionResponseBuilder().setNotification(CardService.newNotification().setText("Already blocked")).build();
 }
 
-/**
- * Handles removing an email from the manager UI
- */
 function handleWhitelistFromManager(e) {
   var senderToRemove = e.parameters.sender;
   var props = PropertiesService.getScriptProperties();
   var list = JSON.parse(props.getProperty('blacklist') || "[]")
     .filter(function(email) { return email !== senderToRemove; });
-  
   props.setProperty('blacklist', JSON.stringify(list));
-  
   return CardService.newActionResponseBuilder()
     .setNavigation(CardService.newNavigation().updateCard(showBlacklistManager(e)))
     .setNotification(CardService.newNotification().setText("Removed from Blacklist"))
     .build();
 }
 
-// --- REMAINING UTILITIES (VirusTotal, Gemini, etc.) ---
+// --- REMAINING UTILITIES ---
 
 function checkVirusTotalFile_(fileHash, key) {
   var url = "https://www.virustotal.com/api/v3/files/" + fileHash;
@@ -295,7 +273,6 @@ function createResultCard(results, sender, isBlacklisted) {
   results.details.reasons.forEach(function (r) { sec.addWidget(CardService.newTextParagraph().setText(r)); });
   
   var acts = CardService.newCardSection().setHeader("Controls:");
-  acts.addWidget(CardService.newTextButton().setText("🔍 ANY.RUN Sandbox").setOpenLink(CardService.newOpenLink().setUrl("https://app.any.run/submissions/")));
   acts.addWidget(CardService.newTextButton().setText("🧪 Show Gemini Debug").setOnClickAction(CardService.newAction().setFunctionName("showLastGeminiDebug")));
   acts.addWidget(CardService.newTextButton().setText("⚙️ Manage Blacklist").setOnClickAction(CardService.newAction().setFunctionName("showBlacklistManager")));
   
