@@ -1,51 +1,66 @@
 # Malicious Scorer 🛡️
 
-**Malicious Scorer** is a cutting-edge Gmail security add-on designed for real-time detection of phishing, spoofing, and malware. By integrating global threat intelligence with Generative AI, it provides a comprehensive risk assessment for every incoming email.
+![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=for-the-badge&logo=google-apps-script&logoColor=white)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![Gemini AI](https://img.shields.io/badge/Gemini%20AI-8E75C2?style=for-the-badge&logo=googlegemini&logoColor=white)
+
+**Malicious Scorer** is a high-performance Gmail security add-on designed to identify and neutralize cyber threats in real-time. This project is built and hosted entirely on the **Google Apps Script (GAS)** cloud platform, integrating directly with the Gmail interface to provide a seamless, serverless security layer.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture & Environment
 
-The system follows a **Defense-in-Depth** multi-layered security model:
+The application is developed using the **V8 Runtime** of Google Apps Script. It executes on Google's infrastructure (Server-side) and interacts with the Gmail UI through the **Card Service**.
 
-1.  **Identity Layer:** Inspects **SPF and DKIM** authentication results to verify sender legitimacy and prevent spoofing/BEC (Business Email Compromise) attacks.
-2.  **Reputation Layer:** Executes asynchronous lookups against **VirusTotal** for all extracted URLs and file fingerprints (**SHA-256**) found within attachments.
-3.  **Intelligence Layer (AI):** Utilizes **Gemini 2.5 Flash** to perform a semantic analysis of the email's intent, identifying social engineering patterns that traditional scanners often miss.
-4.  **Enforcement Layer:** Aggregates all technical and AI signals into a weighted **Risk Score (0-100)**. High-risk senders are automatically moved to a persistent blacklist.
+The security model follows a **Defense-in-Depth** approach:
 
-
-
----
-
-## 🔌 APIs Used
-
-* **VirusTotal API (v3):** Global reputation engine for URLs and file hash lookups.
-* **Google Gemini API (2.5 Flash):** Advanced Large Language Model for intent analysis and phishing detection.
-* **Gmail Apps Script Service:** The core framework for accessing email metadata and building the native UI.
-* **Properties Service:** A secure, persistent storage for managing the blacklist and API credentials.
+1.  **Identity Layer:** Inspects **SPF and DKIM** headers via the native `GmailApp` service to verify sender authenticity and mitigate spoofing risks.
+2.  **Reputation Layer:** Performs asynchronous lookups against **VirusTotal** for all extracted URLs and file fingerprints (**SHA-256**) using the `UrlFetchApp` service.
+3.  **Intelligence Layer (AI):** Leverages **Gemini 2.5 Flash** (via external API request) to conduct semantic analysis of the email's intent, specifically targeting social engineering and manipulation patterns.
+4.  **Enforcement Layer:** Aggregates all security signals into a unified **Risk Score (0-100)** and manages a persistent blacklist using the platform's built-in `PropertiesService`.
 
 ---
 
-## ✨ Implemented Features
+## 🔒 Security & Privacy Considerations
 
-* **Forensic File Analysis:** Computes SHA-256 hashes for all attachments to check against global malware databases without compromising privacy.
-* **Semantic Threat Detection:** Gemini AI analyzes the subject and body to detect urgency, manipulation, and social engineering.
-* **Automated & Manual Blacklisting:** Features a built-in **Blacklist Manager** allowing users to block or whitelist senders with a single click.
-* **Dynamic Risk Scoring:** A transparent verdict system (Safe/Suspicious/Malicious) with detailed reasoning for every detection.
-* **Analyst Debugging:** Includes a "Gemini Debug Log" feature for transparency into the AI's decision-making process.
+A core principle of this project is **Data Minimization** and user privacy:
+* **Hash-Only Scanning:** When inspecting attachments, the system computes a local **SHA-256 hash** and only sends the fingerprint to VirusTotal. The actual file content is never uploaded to external servers.
+* **Privacy-First AI:** Only non-sensitive metadata (subject, sender, and counts) is sent for AI analysis to identify patterns without exposing the full private body of the email unless necessary.
 
+---
 
+## 🛠️ Error Handling & Resilience
+
+The system is built to be **Resilient** in production environments:
+* **Graceful Degradation:** If an external API (like VirusTotal or Gemini) is unreachable, the system continues to function based on the remaining layers and provides a "Partial Scan" notification to avoid a false sense of security.
+* **Input Sanitization:** All email bodies are sanitized before processing to prevent script injection and to ensure the AI receives clean, relevant data.
+
+---
+
+## 📂 Project Structure
+
+* **`Code.gs` (Core Logic):** Handles orchestration, scanning engines (Hashing, Regex), API integrations, and UI rendering.
+* **`appsscript.json` (Manifest):** Defines OAuth Scopes and contextual triggers.
+
+---
+
+## 🚀 Future Roadmap (TODO)
+
+1.  **Dynamic Sandbox Analysis:** Integration with **ANY.RUN** or **Cuckoo Sandbox** for behavioral detection of suspicious files.
+2.  **Secure Secret Management:** Transitioning API key storage to **GCP Secret Manager** for IAM-based access control and encryption.
+3.  **Advanced Caching Layer:** Implementation of `CacheService` to reduce API latency and costs.
+4.  **URL Unshortening:** Resolving shortened URLs (e.g., bit.ly) before analysis.
+5.  **Image-Based Phishing (OCR):** Integrating **Google Vision API** to detect malicious text within images.
 
 ---
 
 ## ⚠️ Limitations
 
-* **API Quotas:** The free tier of VirusTotal is limited (typically 4 requests/min), which may impact performance for emails with a high number of links.
-* **Archive Depth:** The scanner analyzes the hash of the archive file (ZIP/RAR) itself but does not currently decompress or inspect files hidden inside password-protected archives.
-* **Persistent Storage Limit:** The blacklist is managed via `PropertiesService`, which has a 9KB size limit per property—ideal for personal use but not designed for massive enterprise lists.
-* **OCR Integration:** The current AI analysis is text-optimized and does not perform OCR on images or scan visual-based phishing (e.g., screenshots of text).
+* **API Quotas:** Free tier VirusTotal limits (4 requests/min).
+* **Encrypted Archives:** Cannot inspect files inside password-protected ZIP/RAR files.
+* **Storage Constraints:** `PropertiesService` has a 9KB size limit per key.
 
 ---
 
-### Developed by: yuval aviv
-
+### Developed by: [Your Name]
+*Industrial Engineering & Management Student | AI-Driven Security Systems Developer*
