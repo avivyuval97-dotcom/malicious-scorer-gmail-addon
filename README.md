@@ -1,5 +1,4 @@
 # Malicious Scorer 🛡️
-
 **Malicious Scorer** is a high-performance Gmail security add-on designed to identify and neutralize cyber threats in real-time. This project is built and hosted entirely on the **Google Apps Script (GAS)** cloud platform, integrating directly with the Gmail interface to provide a seamless, serverless security layer.
 
 ---
